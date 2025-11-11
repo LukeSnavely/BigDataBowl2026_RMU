@@ -4,6 +4,10 @@ post_throw <- arrow::read_parquet("data/post_throw_tracking.parquet")
 pre_throw <- arrow::read_parquet("data/pre_throw_tracking.parquet")
 supplement <- read_csv("data/supplementary_data.csv")
 
+# Custom playID and gameID
+pre_throw <- pre_throw |> 
+  mutate(unique_id = paste(game_id, play_id))
+
 # Filtering for QBs
 qb_time <- pre_throw |> 
   filter(player_position == "QB")
@@ -28,12 +32,12 @@ screens_slants <- qb_frames |>
 
 # Filtering for "broken" players
 broken <- qb_frames |> 
-  filter(num_of_frames >= 35)
+  filter(num_of_frames >= 35) |> 
+  mutate(unique_id = paste(game_id, play_id))
 
 # Plays we want to look at
 extended_plays <- pre_throw |> 
-  filter(game_id %in% broken$game_id,
-         play_id %in% broken$play_id)
+  filter(unique_id %in% broken$unique_id)
 
 # Normalizing the playing field (all plays go in the same direction)
 extended_plays <- extended_plays |>
